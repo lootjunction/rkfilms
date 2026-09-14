@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ movie.title }} - RK FILMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .watch-container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .movie-header { display: flex; gap: 30px; margin-bottom: 40px; flex-wrap: wrap; }
+        .movie-header img { width: 250px; border-radius: 10px; border: 1px solid var(--border-dark); }
+        .movie-info h1 { font-size: 2.5rem; margin-bottom: 10px; color: #fff; }
+        .movie-info p { color: #aaa; line-height: 1.6; margin-top: 15px; }
+        
+        /* Main Action Button */
+        .main-download-btn {
+            background: var(--accent);
+            color: #000;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 25px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Modal Background (Black Overlay) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Modal Box (Screenshot 2026-09-14 222635.png) */
+        .modal-content {
+            background: #111;
+            border: 1px solid #333;
+            width: 100%;
+            max-width: 650px;
+            border-radius: 12px;
+            padding: 25px;
+            color: #fff;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .modal-header h3 { font-size: 1.3rem; font-weight: 600; }
+        .close-btn { cursor: pointer; color: #888; font-size: 1.5rem; }
+        .close-btn:hover { color: #fff; }
+
+        /* Download Options List */
+        .download-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        /* Custom Scrollbar for list */
+        .download-list::-webkit-scrollbar { width: 6px; }
+        .download-list::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+        .download-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #161616;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid #222;
+            position: relative;
+        }
+        .item-title {
+            font-family: monospace;
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #ddd;
+        }
+        
+        /* Yellow Download Button inside list */
+        .dl-btn {
+            background: #ffb03a;
+            color: #000;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Dropdown Popover (Screenshot 2026-09-14 222647.png) */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 60px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 280px;
+            padding: 10px;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+        }
+        .dropdown-menu.show { display: block; }
+        
+        .drop-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            text-decoration: none;
+            color: #fff;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        .drop-item:hover { background: #252525; }
+        
+        .drop-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+        .drop-icon.fast { background: #ffb03a; color: #000; }
+        .drop-icon.tg { background: #222; color: #fff; border: 1px solid #444; }
+        
+        .drop-text { display: flex; flex-direction: column; }
+        .drop-title { font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .drop-sub { font-size: 0.75rem; color: #888; font-family: monospace; margin-top: 2px; }
+        
+        .premium-tag {
+            background: rgba(255, 176, 58, 0.1);
+            color: #ffb03a;
+            border: 1px solid #ffb03a;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+    </head>
+<body>
+    <header>
+        <a href="/" class="logo">RK <span>FILMS</span></a>
+    </header>
+
+    <div class="watch-container">
+        <!-- Movie Details -->
+        <div class="movie-header">
+            <img src="{{ movie.poster }}" alt="{{ movie.title }}">
+            <div class="movie-info">
+                <h1>{{ movie.title }}</h1>
+                <div style="color: #ffb03a; font-weight: bold; font-size: 1.1rem;">
+                    ★ {{ movie.rating }} <span style="color:#666; margin: 0 10px;">|</span> {{ movie.year }} <span style="color:#666; margin: 0 10px;">|</span> {{ movie.category }}
+                </div>
+                <p>{{ movie.description }}</p>
+                
+                <!-- Main trigger button -->
+                <button class="main-download-btn" onclick="document.getElementById('downloadModal').style.display='flex'">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Get Downloads
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal Overlay -->
+    <div id="downloadModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Available Downloads</h3>
+                <i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('downloadModal').style.display='none'"></i>
+            </div>
+            
+            <div class="download-list">
+                
+                <!-- Item 1: 480p -->
+                <div class="download-item">
+                    <div class="item-title">SEASON 1 (480p x264)</div>
+                    <button class="dl-btn" onclick="toggleDropdown('drop1')">
+                        <i class="fa-solid fa-download"></i> Download
+                    </button>
+                    <!-- Dropdown for Item 1 -->
+                    <div id="drop1" class="dropdown-menu">
+                        <a href="#" class="drop-item">
+                            <div class="drop-icon fast"><i class="fa-solid fa-bolt"></i></div>
+                            <div class="drop-text">
+                                <div class="drop-title">Fast download <span class="premium-tag"><i class="fa-solid fa-crown"></i> Premium</span></div>
+                                <div class="drop-sub">Browse files here</div>
+                            </div>
+                        </a>
+                        <!-- THE MONEY LINK: Update this href with your Ad/URL shortener link -->
+                        <a href="https://t.me/YOUR_BOT_USERNAME?start=movie_{{ movie.id }}" target="_blank" class="drop-item">
+                            <div class="drop-icon tg"><i class="fa-regular fa-paper-plane"></i></div>
+                            <div class="drop-text">
+                                <div class="drop-title">Free on Telegram</div>
+                                <div class="drop-sub">Slower, opens Telegram</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Item 2: 720p -->
+                <div class="download-item">
+                    <div class="item-title">SEASON 1 (720p x265)</div>
+                    <button class="dl-btn" onclick="toggleDropdown('drop2')">
+                        <i class="fa-solid fa-download"></i> Download
+                    </button>
+                    <!-- Dropdown for Item 2 -->
+                    <div id="drop2" class="dropdown-menu">
+                        <a href="#" class="drop-item">
+                            <div class="drop-icon fast"><i class="fa-solid fa-bolt"></i></div>
+                            <div class="drop-text">
+                                <div class="drop-title">Fast download <span class="premium-tag"><i class="fa-solid fa-crown"></i> Premium</span></div>
+                                <div class="drop-sub">Browse files here</div>
+                            </div>
+                        </a>
+                        <a href="https://t.me/YOUR_BOT_USERNAME?start=movie_{{ movie.id }}" target="_blank" class="drop-item">
+                            <div class="drop-icon tg"><i class="fa-regular fa-paper-plane"></i></div>
+                            <div class="drop-text">
+                                <div class="drop-title">Free on Telegram</div>
+                                <div class="drop-sub">Slower, opens Telegram</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- You can copy-paste the above <div class="download-item"> block for 1080p, 2160p etc. -->
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript to handle dropdown toggles -->
+    <script>
+        function toggleDropdown(id) {
+            // Close any currently open dropdowns first
+            var menus = document.getElementsByClassName("dropdown-menu");
+            for (var i = 0; i < menus.length; i++) {
+                if(menus[i].id !== id) {
+                    menus[i].classList.remove('show');
+                }
+            }
+            // Toggle the clicked one
+            document.getElementById(id).classList.toggle("show");
+        }
+
+        // Close dropdowns if user clicks outside of them
+        window.onclick = function(event) {
+            if (!event.target.matches('.dl-btn') && !event.target.closest('.dl-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-menu");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

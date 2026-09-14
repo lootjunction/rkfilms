@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Panel - StreamVault</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .upload-container {
+            max-width: 600px;
+            margin: 40px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .upload-box {
+            background-color: #1f1f1f;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .upload-box h3 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        .upload-input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            background: #222;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 4px;
+            outline: none;
+        }
+        .upload-btn {
+            background-color: #e50914;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .upload-btn:hover {
+            background-color: #f6121d;
+        }
+        .msg {
+            color: #46d369;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">STREAMVAULT</a>
+        <a href="/upload" class="logo" style="font-size: 1rem; color: #fff;">Upload Panel</a>
+    </header>
+
+    <div class="container upload-container">
+        <!-- 1. File Upload Box -->
+        <div class="upload-box">
+            <h3>Upload Database (.db) or Media File</h3>
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="type" value="file">
+                <input type="file" name="file" class="upload-input" required><br>
+                <button type="submit" class="upload-btn">Upload Local File</button>
+            </form>
+        </div>
+
+        <!-- 2. URL Download Box -->
+        <div class="upload-box">
+            <h3>Download & Import via Direct URL</h3>
+            <form method="POST">
+                <input type="hidden" name="type" value="url">
+                <input type="text" name="url" placeholder="Paste direct file or database URL here..." class="upload-input" required><br>
+                <button type="submit" class="upload-btn">Fetch via URL</button>
+            </form>
+        </div>
+
+        {% if message %}
+        <div class="upload-box" style="text-align: center;">
+            <p class="msg">{{ message }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

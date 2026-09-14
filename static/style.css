@@ -1,0 +1,266 @@
+:root {
+    --bg-color: #0c0c0c;
+    --accent: #ffb03a;
+    --card-bg: #161616;
+    --text-main: #ffffff;
+    --text-muted: #888888;
+    --border-dark: #222222;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+/* Header Styling */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 4%;
+    background: transparent;
+}
+
+.logo {
+    color: var(--text-main);
+    font-size: 1.6rem;
+    font-weight: bold;
+    text-decoration: none;
+    font-family: serif; /* Matches the PhonoFilm logo style */
+}
+.logo span {
+    color: var(--accent);
+}
+
+.search-box {
+    background: #141414;
+    border: 1px solid var(--border-dark);
+    border-radius: 20px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    width: 300px;
+}
+.search-box i {
+    color: var(--text-muted);
+    margin-right: 10px;
+}
+.search-box input {
+    background: transparent;
+    border: none;
+    color: white;
+    outline: none;
+    width: 100%;
+}
+
+.header-right {
+    display: flex;
+    gap: 10px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: 1px solid var(--border-dark);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+.icon-btn:hover {
+    color: white;
+    border-color: #444;
+}
+.sign-in {
+    border-color: #333;
+    color: white;
+}
+
+/* Main Category Tabs */
+.category-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px 0;
+}
+.cat-pill {
+    background: #111;
+    border: 1px solid var(--border-dark);
+    color: var(--text-muted);
+    padding: 8px 20px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cat-pill.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 600;
+}
+
+/* Container & Sections */
+.container {
+    padding: 0 4%;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+.time-filters {
+    display: flex;
+    background: #111;
+    border-radius: 20px;
+    padding: 4px;
+    border: 1px solid var(--border-dark);
+}
+.time-pill {
+    padding: 4px 16px;
+    font-size: 0.8rem;
+    border-radius: 15px;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+.time-pill.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: bold;
+}
+
+/* Horizontal Movie Row */
+.movie-row {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 20px;
+    scrollbar-width: none;
+}
+.movie-row::-webkit-scrollbar {
+    display: none;
+}
+
+/* Exact Landscape Card Styling */
+.landscape-card {
+    position: relative;
+    min-width: 280px;
+    width: 280px;
+    height: 160px;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: white;
+    border: 1px solid var(--border-dark);
+}
+.landscape-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+    transition: 0.3s;
+}
+.landscape-card:hover img {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Floating Card Icons */
+.circle-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #ccc;
+    border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 8px;
+}
+.card-top-left {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+.card-top-left .circle-icon {
+    color: var(--accent);
+}
+.card-top-right {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Bottom Rank & Title */
+.card-bottom {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    padding: 10px 0;
+}
+
+.big-rank {
+    font-size: 3rem;
+    font-weight: 900;
+    font-style: italic;
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--accent);
+    /* Creating the striped effect inside the text */
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 2px,
+        var(--accent) 2px,
+        var(--accent) 4px
+    );
+    -webkit-background-clip: text;
+}
+
+.info-text {
+    padding-bottom: 2px;
+}
+.m-title {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+.m-meta {
+    font-size: 0.75rem;
+    color: var(--text-main);
+}
+.m-meta .star i {
+    color: var(--accent);
+}
+.m-meta .dot {
+    margin: 0 4px;
+    color: var(--text-muted);
+}
