@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import requests
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -12,14 +12,14 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 DB_NAME = 'movies_search.db'
 
-# --- TELEGRAM BOT TOKEN YAHAN DALEIN ---
+# --- TELEGRAM BOT TOKEN ---
 TELEGRAM_BOT_TOKEN = "8969193756:AAEDDa2IJqiVqL75b8JfhFcH4UHILUz0YvY"
 
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # 1. Basic table create karo (agar bilkul nahi hai toh)
+    # 1. Basic table create karo
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS movies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +31,7 @@ def init_db():
         )
     ''')
     
-    # 2. AUTO-FIX: Agar purani database hai toh missing columns add karo
+    # 2. AUTO-FIX: Missing columns add karo
     cursor.execute("PRAGMA table_info(movies)")
     columns = [col[1] for col in cursor.fetchall()]
     
@@ -47,6 +47,12 @@ def init_db():
 
 init_db()
 
+# --- MONETAG SERVICE WORKER ROUTE ---
+@app.route('/sw.js')
+def service_worker():
+    return send_from_directory(app.root_path, 'sw.js')
+
+# --- HOME PAGE ---
 @app.route('/')
 def home():
     search_query = request.args.get('search', '').lower()
@@ -88,6 +94,7 @@ def home():
     
     return render_template('index.html', trending=trending, latest=latest, top_rated=top_rated, search=search_query, current_category=selected_category)
 
+# --- WATCH PAGE ---
 @app.route('/watch/<int:movie_id>')
 def watch(movie_id):
     conn = sqlite3.connect(DB_NAME)
@@ -103,11 +110,28 @@ def watch(movie_id):
     movie = dict(row)
     return render_template('watch.html', movie=movie)
 
+# --- GET LINK / TIMER PAGE ---
+@app.route('/get-link/<int:movie_id>')
+def get_link(movie_id):
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM movies WHERE id = ?", (movie_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return "Movie not found", 404
+        
+    movie = dict(row)
+    return render_template('get_link.html', movie=movie)
+
+# --- UPLOAD PAGE (Backup ke liye) ---
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     return render_template('upload.html')
 
-# --- TELEGRAM WEBHOOK ---
+# --- TELEGRAM WEBHOOK PIPELINE ---
 @app.route('/telegram-webhook', methods=['POST'])
 def telegram_webhook():
     update = request.get_json()
@@ -116,8 +140,6 @@ def telegram_webhook():
         chat_id = update['message']['chat']['id']
         text = update['message']['text']
         
-        # Bot ko is exact sequence mein script bhejni hai: 
-        # Title | Description | Year | Rating | Category | Genre | Poster_URL | Video_URL
         if "|" in text:
             parts = [p.strip() for p in text.split('|')]
             
@@ -144,4 +166,4 @@ def telegram_webhook():
     return "OK", 200
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
