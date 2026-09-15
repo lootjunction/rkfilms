@@ -3,130 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RK FILMS - Streaming</title>
+    <title>RK FILMS - Watch & Download Movies</title>
+    
+    <!-- MONETAG VERIFICATION META TAG -->
+    <meta name="monetag" content="bc4f1c774eeafef4f924f4d623e4e2c6">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- FontAwesome for the exact icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MONETAG POP-UNDER SCRIPT -->
+    <script src="https://alwingulla.com/88/tag.min.js" data-zone="11802298" async data-cfasync="false"></script>
 </head>
 <body>
-    <!-- Top Header -->
     <header>
         <a href="/" class="logo">RK <span>FILMS</span></a>
-        
-        <div class="header-center">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" placeholder="Search Movies" value="{{ search }}">
-            </div>
-        </div>
-
-        <div class="header-right">
-            <a href="#" class="icon-btn"><i class="fa-solid fa-border-all"></i> Browse</a>
-            <a href="#" class="icon-btn"><i class="fa-solid fa-circle-nodes"></i> Circles</a>
-            <a href="#" class="icon-btn"><i class="fa-solid fa-layer-group"></i> Collections</a>
-            <a href="/upload" class="icon-btn sign-in"><i class="fa-regular fa-user"></i> Sign in / Upload</a>
-        </div>
+        <form action="/" method="GET" class="search-bar">
+            <input type="text" name="search" placeholder="Search movies..." value="{{ search }}">
+            <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
     </header>
 
-    <!-- Main Categories (All, Movie, TV Show...) -->
-    <div class="category-tabs">
-        <a href="/?category=All" class="cat-pill {% if current_category == 'All' %}active{% endif %}">
-            <i class="fa-solid fa-grip"></i> All
-        </a>
-        <a href="/?category=Movie" class="cat-pill {% if current_category == 'Movie' %}active{% endif %}">
-            <i class="fa-solid fa-film"></i> Movie
-        </a>
-        <a href="/?category=TV Show" class="cat-pill {% if current_category == 'TV Show' %}active{% endif %}">
-            <i class="fa-solid fa-tv"></i> TV Show
-        </a>
-        <a href="/?category=Anime" class="cat-pill {% if current_category == 'Anime' %}active{% endif %}">
-            <i class="fa-solid fa-ghost"></i> Anime
-        </a>
-        <a href="/?category=Asian" class="cat-pill {% if current_category == 'Asian' %}active{% endif %}">
-            <i class="fa-solid fa-earth-asia"></i> Asian
-        </a>
-    </div>
-
     <div class="container">
-        
-        <!-- Trending Section -->
-        <div class="section-header">
-            <h2>Trending <i class="fa-solid fa-chevron-right" style="font-size: 0.9rem; margin-left:5px;"></i></h2>
-            <div class="time-filters">
-                <span class="time-pill active">Day</span>
-                <span class="time-pill">Week</span>
-                <span class="time-pill">Month</span>
-            </div>
+        <!-- Category Filter Tabs -->
+        <div class="category-tabs">
+            <a href="/?category=All" class="tab-btn {% if current_category == 'All' %}active{% endif %}">All</a>
+            <a href="/?category=Movie" class="tab-btn {% if current_category == 'Movie' %}active{% endif %}">Movie</a>
+            <a href="/?category=TV Show" class="tab-btn {% if current_category == 'TV Show' %}active{% endif %}">TV Show</a>
+            <a href="/?category=Anime" class="tab-btn {% if current_category == 'Anime' %}active{% endif %}">Anime</a>
         </div>
 
+        <!-- Trending Section -->
+        <h2 class="section-title">Trending</h2>
         <div class="movie-row">
             {% for movie in trending %}
-            <a href="/watch/{{ movie.id }}" class="landscape-card">
-                <img src="{{ movie.poster }}" alt="{{ movie.title }}">
-                
-                <!-- Floating Icons -->
-                <div class="card-top-left">
-                    <div class="circle-icon"><i class="fa-solid fa-play"></i></div>
+            <div class="movie-card">
+                <div class="card-img-wrapper">
+                    <img src="{{ movie.poster }}" alt="{{ movie.title }}">
+                    <a href="{{ url_for('watch', movie_id=movie.id) }}" class="play-overlay">
+                        <i class="fa-solid fa-play"></i>
+                    </a>
                 </div>
-                <div class="card-top-right">
-                    <div class="circle-icon"><i class="fa-regular fa-bookmark"></i></div>
-                    <div class="circle-icon"><i class="fa-regular fa-eye"></i></div>
-                    <div class="circle-icon"><i class="fa-solid fa-download"></i></div>
-                </div>
-
-                <!-- Bottom Info with Big Rank Number -->
-                <div class="card-bottom">
-                    <div class="big-rank">{{ loop.index }}</div>
-                    <div class="info-text">
-                        <div class="m-title">{{ movie.title }}</div>
-                        <div class="m-meta">
-                            <span class="star"><i class="fa-solid fa-star"></i> {{ movie.rating }}</span> 
-                            <span class="dot">·</span> {{ movie.year }}
-                        </div>
+                <div class="card-info">
+                    <h3>{{ movie.title }}</h3>
+                    <div class="card-meta">
+                        <span>★ {{ movie.rating }}</span>
+                        <span>{{ movie.year }}</span>
                     </div>
                 </div>
-            </a>
+            </div>
+            {% else %}
+            <p style="color: #666;">No movies found.</p>
             {% endfor %}
         </div>
 
         <!-- Latest Section -->
-        <div class="section-header" style="margin-top: 40px;">
-            <h2>Latest <i class="fa-solid fa-chevron-right" style="font-size: 0.9rem; margin-left:5px;"></i></h2>
-            <div class="time-filters">
-                <span class="time-pill active">Movie</span>
-                <span class="time-pill">TV Show</span>
-                <span class="time-pill">Anime</span>
-            </div>
-        </div>
-
+        <h2 class="section-title">Latest Releases</h2>
         <div class="movie-row">
             {% for movie in latest %}
-            <a href="/watch/{{ movie.id }}" class="landscape-card">
-                <img src="{{ movie.poster }}" alt="{{ movie.title }}">
-                
-                <div class="card-top-left">
-                    <div class="circle-icon"><i class="fa-solid fa-play"></i></div>
+            <div class="movie-card">
+                <div class="card-img-wrapper">
+                    <img src="{{ movie.poster }}" alt="{{ movie.title }}">
+                    <a href="{{ url_for('watch', movie_id=movie.id) }}" class="play-overlay">
+                        <i class="fa-solid fa-play"></i>
+                    </a>
                 </div>
-                <div class="card-top-right">
-                    <div class="circle-icon"><i class="fa-regular fa-bookmark"></i></div>
-                    <div class="circle-icon"><i class="fa-regular fa-eye"></i></div>
-                    <div class="circle-icon"><i class="fa-solid fa-download"></i></div>
-                </div>
-
-                <div class="card-bottom">
-                    <div class="big-rank">{{ loop.index }}</div>
-                    <div class="info-text">
-                        <div class="m-title">{{ movie.title }}</div>
-                        <div class="m-meta">
-                            <span class="star"><i class="fa-solid fa-star"></i> {{ movie.rating }}</span> 
-                            <span class="dot">·</span> {{ movie.year }}
-                        </div>
+                <div class="card-info">
+                    <h3>{{ movie.title }}</h3>
+                    <div class="card-meta">
+                        <span>★ {{ movie.rating }}</span>
+                        <span>{{ movie.year }}</span>
                     </div>
                 </div>
-            </a>
+            </div>
             {% endfor %}
         </div>
-
     </div>
 </body>
 </html>
