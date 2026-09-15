@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generating Link for {{ movie.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MONETAG POPUNDER SCRIPT -->
+    <script>(function(s){s.dataset.zone='11805065',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
+    <style>
+        .timer-container {
+            max-width: 600px;
+            margin: 80px auto;
+            background: #111;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .timer-container h2 { color: #fff; margin-bottom: 10px; }
+        .timer-container p { color: #888; font-size: 0.95rem; margin-bottom: 30px; }
+        
+        .countdown-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid #222;
+            border-top-color: var(--accent);
+            margin: 0 auto 30px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+        .countdown-text {
+            position: absolute;
+            animation: reverse-spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes reverse-spin { 100% { transform: rotate(-360deg); } }
+
+        .tg-btn {
+            display: none; 
+            background: #229ED9;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .tg-btn:hover { background: #1b84b5; transform: scale(1.05); }
+        
+        .ad-box {
+            margin: 20px 0;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px dashed #444;
+            border-radius: 8px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">RK <span>FILMS</span></a>
+    </header>
+
+    <div class="timer-container">
+        <h2>Please Wait...</h2>
+        <p>Your secure Telegram link for <strong>{{ movie.title }}</strong> is generating.</p>
+
+        <!-- Top Ad Box -->
+        <div class="ad-box">
+            Advertisement Space
+        </div>
+
+        <!-- Timer Circle -->
+        <div class="countdown-circle" id="timerCircle">
+            <span class="countdown-text" id="countdown">15</span>
+        </div>
+
+        <!-- Final Telegram Link Button -->
+        <a href="https://t.me/RK_FILMS_BOT?start=movie_{{ movie.id }}" target="_blank" class="tg-btn" id="tgBtn">
+            <i class="fa-brands fa-telegram"></i> Send to Telegram
+        </a>
+
+        <!-- Bottom Ad Box -->
+        <div class="ad-box">
+            Advertisement Space
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 15;
+        const countdownEl = document.getElementById('countdown');
+        const timerCircle = document.getElementById('timerCircle');
+        const tgBtn = document.getElementById('tgBtn');
+
+        const timerId = setInterval(() => {
+            timeLeft--;
+            countdownEl.innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerId);
+                timerCircle.style.display = 'none'; 
+                tgBtn.style.display = 'inline-block'; 
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
