@@ -131,39 +131,87 @@ def get_link(movie_id):
 def upload_file():
     return render_template('upload.html')
 
-# --- TELEGRAM WEBHOOK PIPELINE ---
+# --- TELEGRAM WEBHOOK PIPELINE (Video & File Support) ---
 @app.route('/telegram-webhook', methods=['POST'])
 def telegram_webhook():
     update = request.get_json()
     
-    if update and 'message' in update and 'text' in update['message']:
-        chat_id = update['message']['chat']['id']
-        text = update['message']['text']
+    if update and 'message' in update:
+        msg = update['message']
+        chat_id = msg['chat']['id']
         
-        if "|" in text:
-            parts = [p.strip() for p in text.split('|')]
+        # 1. Check karo ki kya user ne Start command di hai ya movie file bheji hai
+        if 'text' in msg and msg['text'].startswith('/start'):
+            text_val = msg['text']
+            if 'movie_' in text_val:
+                try:
+                    movie_id = text_val.split('movie_')[1]
+                    conn = sqlite3.connect(DB_NAME)
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM movies WHERE id = ?", (movie_id,))
+                    row = cursor.fetchone()
+                    conn.close()
+                    
+                    if row and row['video_url']:
+                        # Bot user ko wahi asli Telegram file/video bhej dega
+                        file_id = row['video_url']
+                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendVideo", json={
+                            "chat_id": chat_id,
+                            "video": file_id,
+                            "caption": f"🎬 Enjoy your movie: *{row['title']}*\n\nPowered by RK FILMS",
+                            "parse_mode": "Markdown"
+                        })
+                    else:
+                        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
+                            "chat_id": chat_id,
+                            "text": "❌ Movie file not found or expired."
+                        })
+                except Exception as e:
+                    pass
+            return "OK", 200
+
+        # 2. Movie Upload via Telegram Video/Document + Caption
+        caption = msg.get('caption', '')
+        file_id = None
+        
+        if 'video' in msg:
+            file_id = msg['video']['file_id']
+        elif 'document' in msg:
+            file_id = msg['document']['file_id']
             
-            if len(parts) == 8:
+        if file_id and "|" in caption:
+            parts = [p.strip() for p in caption.split('|')]
+            
+            if len(parts) == 7: # Title, Desc, Year, Rating, Category, Genre, Poster
+                title, desc, year, rating, category, genre, poster = parts
                 try:
                     conn = sqlite3.connect(DB_NAME)
                     cursor = conn.cursor()
                     cursor.execute('''
                         INSERT INTO movies (title, description, year, rating, category, genre, poster, video_url)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', tuple(parts))
+                    ''', (title, desc, year, rating, category, genre, poster, file_id))
                     conn.commit()
                     conn.close()
                     
                     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", 
-                                  json={"chat_id": chat_id, "text": f"✅ Success! '{parts[0]}' RK FILMS par upload ho gayi."})
+                                  json={"chat_id": chat_id, "text": f"✅ Success! '{title}' movie file ke sath RK FILMS par save ho gayi."})
                 except Exception as e:
                     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", 
                                   json={"chat_id": chat_id, "text": f"❌ Error: {str(e)}"})
             else:
                 requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", 
-                              json={"chat_id": chat_id, "text": "❌ Format galat hai. 8 parts hone chahiye '|' ke sath."})
-    
+                              json={"chat_id": chat_id, "text": "❌ Format galat hai. Caption mein 7 parts hone chahiye '|' ke sath.\nFormat: Title | Desc | Year | Rating | Category | Genre | Poster_URL"})
+                
     return "OK", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+```[cite: 1]
+
+### Ab Movie Kaise Add Karni hai? (Telegram par):
+1. Apne Telegram bot ko koi bhi **Movie Video file** ya **Document** bhejiye (ya channel se forward kariye).
+2. Uste waqt **Caption** mein yeh format daal dijiye:
+   `Avatar | Sci-fi adventure movie | 2022 | 7.8 | Movie | Sci-Fi | https://image_url_here.jpg`
+3. Bot turant save kar lega[cite: 1] aur jab user website par timer cross karke aayega, toh bot **wahi original video file user ko bhej dega!**
