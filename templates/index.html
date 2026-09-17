@@ -11,8 +11,24 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- HLS.js for Live Sports Streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
     <!-- MONETAG POP-UNDER SCRIPT -->
     <script src="https://alwingulla.com/88/tag.min.js" data-zone="11802298" async data-cfasync="false"></script>
+
+    <!-- CUSTOM CSS FOR LIVE SPORTS PLAYER -->
+    <style>
+        .live-sports-wrapper { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 40px; }
+        .player-container { flex: 1 1 65%; min-width: 300px; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .match-list-container { flex: 1 1 30%; min-width: 250px; background: #111; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto; border: 1px solid #333; }
+        .match-btn { display: flex; align-items: center; width: 100%; padding: 12px; margin-bottom: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; cursor: pointer; transition: 0.3s; text-align: left; }
+        .match-btn:hover { background: #333; border-color: #e50914; }
+        .match-title { font-weight: bold; font-size: 14px; margin-bottom: 4px; color: #fff; }
+        .match-tour { font-size: 12px; color: #aaa; }
+        .live-indicator { color: #e50914; font-weight: bold; margin-right: 10px; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
 </head>
 <body>
     <header>
@@ -31,6 +47,21 @@
             <a href="/?category=TV Show" class="tab-btn {% if current_category == 'TV Show' %}active{% endif %}">TV Show</a>
             <a href="/?category=Anime" class="tab-btn {% if current_category == 'Anime' %}active{% endif %}">Anime</a>
         </div>
+
+        <!-- NEW: LIVE SPORTS SECTION -->
+        <h2 class="section-title"><span class="live-indicator">● LIVE</span> Sports Matches</h2>
+        <div class="live-sports-wrapper">
+            <!-- Video Player -->
+            <div class="player-container">
+                <video id="live-video" width="100%" controls autoplay poster="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=1000"></video>
+            </div>
+            <!-- Matches List -->
+            <div class="match-list-container">
+                <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 10px;">Available Matches</h3>
+                <div id="matches">Loading live matches...</div>
+            </div>
+        </div>
+        <!-- END: LIVE SPORTS SECTION -->
 
         <!-- Trending Section -->
         <h2 class="section-title">Trending</h2>
@@ -78,5 +109,61 @@
             {% endfor %}
         </div>
     </div>
+
+    <!-- LIVE SPORTS JAVASCRIPT LOGIC -->
+    <script>
+        // Yahan aapko Github file ka RAW URL daalna hai
+        // Example: https://raw.githubusercontent.com/byte-capsule/FanCode-Hls-Fetcher/main/matches.json
+        const jsonUrl = 'https://raw.githubusercontent.com/byte-capsule/FanCode-Hls-Fetcher/main/matches.json';
+
+        async function fetchLiveMatches() {
+            try {
+                const response = await fetch(jsonUrl);
+                const data = await response.json();
+                const matchesDiv = document.getElementById('matches');
+                matchesDiv.innerHTML = ''; 
+
+                if (data.matches && data.matches.length > 0) {
+                    data.matches.forEach(match => {
+                        const btn = document.createElement('button');
+                        btn.className = 'match-btn';
+                        btn.innerHTML = `
+                            <div>
+                                <div class="match-title">${match.match_name}</div>
+                                <div class="match-tour">${match.event_name}</div>
+                            </div>
+                        `;
+                        btn.onclick = () => playStream(match.stream_link);
+                        matchesDiv.appendChild(btn);
+                    });
+                } else {
+                    matchesDiv.innerHTML = "<p style='color:#aaa;'>No live matches right now.</p>";
+                }
+            } catch (error) {
+                console.error("Error fetching match data:", error);
+                document.getElementById('matches').innerHTML = "<p style='color:#ff3b3b;'>Error loading matches.</p>";
+            }
+        }
+
+        function playStream(url) {
+            const video = document.getElementById('live-video');
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.play();
+            }
+            // Automatically scroll to video player
+            document.querySelector('.live-sports-wrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Initialize fetch on load
+        fetchLiveMatches();
+    </script>
 </body>
 </html>
