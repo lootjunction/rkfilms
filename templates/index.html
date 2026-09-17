@@ -111,59 +111,86 @@
     </div>
 
     <!-- LIVE SPORTS JAVASCRIPT LOGIC -->
-    <script>
-        // Yahan aapko Github file ka RAW URL daalna hai
-        // Example: https://raw.githubusercontent.com/byte-capsule/FanCode-Hls-Fetcher/main/matches.json
-        const jsonUrl = 'https://raw.githubusercontent.com/byte-capsule/FanCode-Hls-Fetcher/main/search_repos/repos/byte-capsule__FanCode-Hls-Fetcher.json';
+  <script>
+    // GitHub ka raw JSON URL (agar 404 dega toh backup chal jayega)
+    const jsonUrl = 'https://raw.githubusercontent.com/byte-capsule/FanCode-Hls-Fetcher/main/Fancode_hls_m3u8.json';
 
-        async function fetchLiveMatches() {
-            try {
-                const response = await fetch(jsonUrl);
-                const data = await response.json();
-                const matchesDiv = document.getElementById('matches');
-                matchesDiv.innerHTML = ''; 
-
-                if (data.matches && data.matches.length > 0) {
-                    data.matches.forEach(match => {
-                        const btn = document.createElement('button');
-                        btn.className = 'match-btn';
-                        btn.innerHTML = `
-                            <div>
-                                <div class="match-title">${match.match_name}</div>
-                                <div class="match-tour">${match.event_name}</div>
-                            </div>
-                        `;
-                        btn.onclick = () => playStream(match.stream_link);
-                        matchesDiv.appendChild(btn);
-                    });
-                } else {
-                    matchesDiv.innerHTML = "<p style='color:#aaa;'>No live matches right now.</p>";
-                }
-            } catch (error) {
-                console.error("Error fetching match data:", error);
-                document.getElementById('matches').innerHTML = "<p style='color:#ff3b3b;'>Error loading matches.</p>";
+    // Backup Matches Data (Agar 404 aaye toh yeh chalega)
+    const fallbackData = {
+        "matches": [
+            {
+                "match_name": "Wild Woods Warriors vs Hiims Hawks",
+                "event_name": "Chandigarh T20",
+                "stream_link": "https://dai.google.com/linear/hls/event/6XWI2FtaTVmE9hp3LO3NuQ/master.m3u8"
+            },
+            {
+                "match_name": "City Challengers vs Talanoa Tigers",
+                "event_name": "Chandigarh T20",
+                "stream_link": "https://dai.google.com/linear/hls/event/pEZLr3cLR52v0Lb1piiIlA/master.m3u8"
+            },
+            {
+                "match_name": "South Australia vs Tasmania",
+                "event_name": "Sheffield Shield, 2024-25",
+                "stream_link": "https://dai.google.com/linear/hls/event/qYPRpPPWRcqVt2oBWa9ZRw/master.m3u8"
             }
-        }
+        ]
+    };
 
-        function playStream(url) {
-            const video = document.getElementById('live-video');
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play();
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = url;
+    async function fetchLiveMatches() {
+        const matchesDiv = document.getElementById('matches');
+        try {
+            const response = await fetch(jsonUrl);
+            if (!response.ok) throw new Error("404 Not Found");
+            const data = await response.json();
+            renderMatches(data.matches);
+        } catch (error) {
+            console.warn("GitHub fetch failed, loading backup matches...", error);
+            // Agar 404 aayega toh yeh backup data use kar lega
+            renderMatches(fallbackData.matches);
+        }
+    }
+
+    function renderMatches(matchList) {
+        const matchesDiv = document.getElementById('matches');
+        matchesDiv.innerHTML = ''; 
+
+        if (matchList && matchList.length > 0) {
+            matchList.forEach(match => {
+                const btn = document.createElement('button');
+                btn.className = 'match-btn';
+                btn.innerHTML = `
+                    <div>
+                        <div class="match-title">${match.match_name}</div>
+                        <div class="match-tour">${match.event_name}</div>
+                    </div>
+                `;
+                btn.onclick = () => playStream(match.stream_link);
+                matchesDiv.appendChild(btn);
+            });
+            // Pehla match autoplay ke liye load kar dena
+            playStream(matchList[0].stream_link);
+        } else {
+            matchesDiv.innerHTML = "<p style='color:#aaa;'>No live matches right now.</p>";
+        }
+    }
+
+    function playStream(url) {
+        const video = document.getElementById('live-video');
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
                 video.play();
-            }
-            // Automatically scroll to video player
-            document.querySelector('.live-sports-wrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+            video.play();
         }
+    }
 
-        // Initialize fetch on load
-        fetchLiveMatches();
-    </script>
+    // Load hote hi run karein
+    fetchLiveMatches();
+</script>
 </body>
 </html>
