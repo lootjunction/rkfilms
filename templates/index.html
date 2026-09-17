@@ -63,9 +63,10 @@
         </div>
     </div>
 
-    <!-- PLAYER SCRIPT WITH ORIGIN HEADER BYPASS -->
+   <!-- PLAYER SCRIPT WITH DRM CONFIGURATION -->
     <script>
         const manifestUri = 'https://a96aivottlinear-a.akamaihd.net/OTTB/pdx-nitro/live/clients/dash/enc/r5nicrqiyf/out/v1/6659e5152b4e4bb89917f57640f594fb/cenc.mpd';
+        const licenseServer = 'https://prls.atv-ps.amazon.com/cdp';
 
         async function initApp() {
             shaka.polyfill.installAll();
@@ -85,7 +86,16 @@
                 console.error('Error code', event.detail.code, 'object', event.detail);
             });
 
-            // ADD REQUIRED HEADERS (Bypasses Akamai Origin restriction)
+            // CONFIGURE DRM & HEADERS (Bypasses restriction & decrypts stream)
+            player.configure({
+                drm: {
+                    servers: {
+                        'com.widevine.alpha': licenseServer,
+                        'com.microsoft.playready': licenseServer
+                    }
+                }
+            });
+
             player.getNetworkingEngine().registerRequestFilter((type, request) => {
                 request.headers['Origin'] = 'https://sonucdn-v2.pages.dev';
                 request.headers['Referer'] = 'https://sonucdn-v2.pages.dev/';
@@ -93,7 +103,7 @@
 
             try {
                 await player.load(manifestUri);
-                console.log('Live stream successfully loaded with headers!');
+                console.log('Live stream successfully loaded with DRM!');
             } catch (e) {
                 console.error('Error loading manifest', e);
             }
