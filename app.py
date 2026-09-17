@@ -208,7 +208,7 @@ def telegram_webhook():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-```[cite: 1]
+[cite: 1]
 
 ### Ab Movie Kaise Add Karni hai? (Telegram par):
 1. Apne Telegram bot ko koi bhi **Movie Video file** ya **Document** bhejiye (ya channel se forward kariye).
