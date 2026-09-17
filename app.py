@@ -208,10 +208,3 @@ def telegram_webhook():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-[cite: 1]
-
-### Ab Movie Kaise Add Karni hai? (Telegram par):
-1. Apne Telegram bot ko koi bhi **Movie Video file** ya **Document** bhejiye (ya channel se forward kariye).
-2. Uste waqt **Caption** mein yeh format daal dijiye:
-   `Avatar | Sci-fi adventure movie | 2022 | 7.8 | Movie | Sci-Fi | https://image_url_here.jpg`
-3. Bot turant save kar lega[cite: 1] aur jab user website par timer cross karke aayega, toh bot **wahi original video file user ko bhej dega!**
