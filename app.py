@@ -7,7 +7,6 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-# Monetag Service Worker Route (404 error rokne ke liye)
 @app.route('/sw.js')
 def service_worker():
     return "/* Service Worker Active */", 200, {'Content-Type': 'application/javascript'}
