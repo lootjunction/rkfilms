@@ -1,79 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RK LIVE - Match Streaming</title>
-    
-    <!-- MONETAG POP-UNDER SCRIPT -->
-    <script src="https://quge5.com/88/tag.min.js" data-zone="280917" async data-cfasync="false"></script>
-    
-    <!-- Shaka Player UI CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.4/controls.min.css">
-    <!-- Shaka Player UI JS Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.4/shaka-player.ui.min.js"></script>
-
-    <style>
-        body { 
-            background-color: #0f0f0f; 
-            color: #fff; 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
-        h1 { 
-            color: #fff; 
-            margin-bottom: 20px; 
-            text-align: center; 
-            font-size: 22px; 
-        }
-        .live-badge { 
-            background: #e50914; 
-            color: white; 
-            padding: 4px 8px; 
-            border-radius: 4px; 
-            font-size: 14px; 
-            animation: blink 1.5s infinite; 
-            margin-right: 8px;
-        }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        
-        .player-container { 
-            width: 100%; 
-            max-width: 900px; 
-            height: 480px; 
-            background: #000; 
-            border-radius: 10px; 
-            overflow: hidden; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8); 
-        }
-    </style>
-</head>
-<body>
-
-    <h1><span class="live-badge">● LIVE</span> India vs Afghanistan Match</h1>
-
-    <!-- Video Player Box -->
-    <div class="player-container">
-        <div data-shaka-player-container style="width: 100%; height: 100%;">
-            <video autoplay data-shaka-player id="live-video" width="100%" style="width:100%; height:100%;"></video>
-        </div>
-    </div>
-
-   <!-- PLAYER SCRIPT WITH DRM CONFIGURATION -->
-    <script>
+<script>
         const manifestUri = 'https://a96aivottlinear-a.akamaihd.net/OTTB/pdx-nitro/live/clients/dash/enc/r5nicrqiyf/out/v1/6659e5152b4e4bb89917f57640f594fb/cenc.mpd';
-        const licenseServer = 'https://prls.atv-ps.amazon.com/cdp';
 
         async function initApp() {
             shaka.polyfill.installAll();
             if (shaka.Player.isBrowserSupported()) {
                 initPlayer();
             } else {
-                console.error('Browser not supported for Shaka Player!');
+                console.error('Browser not supported!');
             }
         }
 
@@ -81,29 +14,20 @@
             const video = document.getElementById('live-video');
             const player = new shaka.Player(video);
 
-            // ERROR LISTENER
             player.addEventListener('error', (event) => {
                 console.error('Error code', event.detail.code, 'object', event.detail);
             });
 
-            // CONFIGURE DRM & HEADERS (Bypasses restriction & decrypts stream)
-            player.configure({
-                drm: {
-                    servers: {
-                        'com.widevine.alpha': licenseServer,
-                        'com.microsoft.playready': licenseServer
-                    }
-                }
-            });
-
+            // Yahan humne wahi headers daal diye jo teri curl command mein hain
             player.getNetworkingEngine().registerRequestFilter((type, request) => {
                 request.headers['Origin'] = 'https://sonucdn-v2.pages.dev';
                 request.headers['Referer'] = 'https://sonucdn-v2.pages.dev/';
+                request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:156.0) Gecko/20100101 Firefox/156.0';
             });
 
             try {
                 await player.load(manifestUri);
-                console.log('Live stream successfully loaded with DRM!');
+                console.log('Stream loaded successfully using curl headers!');
             } catch (e) {
                 console.error('Error loading manifest', e);
             }
@@ -111,5 +35,3 @@
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
-</body>
-</html>
